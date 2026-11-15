@@ -1,0 +1,4 @@
+clip-apertura/**/fuente/*.npz
+clip-apertura/**/fuente/prev_*.png
+clip-apertura/**/fuente/f_*.png
+__pycache__/
