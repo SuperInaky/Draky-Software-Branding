@@ -1,0 +1,46 @@
+name: Extraer paquetes de logotipos
+on:
+  push:
+    paths:
+      - 'incoming/*.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extraer PNG y validar archivos
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p assets/icono assets/logotipo
+          shopt -s nullglob
+          for file in incoming/*.zip; do
+            unzip -t "$file" >/dev/null
+            temp="$(mktemp -d)"
+            unzip -oq "$file" -d "$temp"
+            find "$temp" -type f -iname '*.png' -print0 | while IFS= read -r -d '' png; do
+              name="$(basename "$png")"
+              case "$name" in
+                Icono_*) target="assets/icono/$name" ;;
+                Logotipo_*) target="assets/logotipo/$name" ;;
+                *) echo "Archivo ignorado: $name"; continue ;;
+              esac
+              cp "$png" "$target"
+            done
+            rm -rf "$temp"
+          done
+          echo "PNG disponibles:"
+          find assets -type f -name '*.png' | sort
+      - name: Publicar imágenes
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/
+          if ! git diff --cached --quiet; then
+            git commit -m "Publicar logotipos PNG extraídos de paquetes"
+            git push
+          fi
