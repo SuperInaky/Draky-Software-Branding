@@ -24,8 +24,9 @@ for family,folder in [("Icono","icono"),("Logotipo","logotipo")]:
                     im.verify()
                 with Image.open(p) as im:
                     width,height=im.size
-                    if width!=size or height!=size:
-                        report["errors"].append(f"{p}: dimensions {width}x{height} != {size}x{size}")
+                    expected_height = size if family == 'Icono' else size // 2
+                    if width != size or height != expected_height:
+                        report["errors"].append(f"{p}: dimensions {width}x{height} != {size}x{expected_height}")
                     report["files"].append({"path":str(p),"width":width,"height":height,"bytes":p.stat().st_size})
             except Exception as exc:
                 report["errors"].append(f"{p}: {exc}")
